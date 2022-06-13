@@ -17,12 +17,15 @@ type Image struct {
 
 type Post struct {
 	ID        string
-	Title     string `json:"title" validate:"required"`
-	Desc      string `json:"desc"`
-	Price     uint64 `json:"price" validate:"required"`
-	Category  string `json:"category" validate:"required"`
-	Location  string `json:"location" validate:"required"`
+	Title     string  `form:"title" validate:"required,max=20"`
+	Desc      string  `form:"desc"`
+	Price     float64 `form:"price" validate:"required"`
+	Category  string  `form:"category" validate:"required,max=20"`
+	Location  string  `form:"location" validate:"required"`
+	Lattitude float64 `form:"lattitude" validate:"required"`
+	Longitude float64 `form:"longitude" validate:"required"`
 	UserEmail string
+	By        string
 	CreatedAt string
 	Images    []Image
 }

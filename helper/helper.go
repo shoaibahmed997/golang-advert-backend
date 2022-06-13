@@ -26,7 +26,7 @@ func ParseToken(c *fiber.Ctx) error {
 		return []byte(config.Config("SECRETKEY")), nil
 	})
 	if tokenError != nil {
-		return c.Status(503).JSON(fiber.Map{"success": false, "error": tokenError.Error()})
+		return c.Status(503).JSON(fiber.Map{"success": false, "error": tokenError.Error(), "error type": "token error"})
 	}
 	email := claims["email"]
 	c.Locals("email", email)

@@ -9,7 +9,7 @@ var err error
 var DB *sql.DB
 
 func postTable() {
-	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS posts (ID TEXT PRIMARY KEY,Title TEXT NOT NULL,Desc TEXT NOT NULL,Price INTEGER NOT NULL,Category TEXT NOT NULL,Location TEXT NOT NULL, userEmail TEXT NOT NULL,CreatedAt DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (userEmail) REFERENCES users (email)  ON DELETE CASCADE );")
+	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS posts (ID TEXT PRIMARY KEY,Title TEXT NOT NULL,Desc TEXT NOT NULL,Price INTEGER NOT NULL,Category TEXT NOT NULL,Location TEXT NOT NULL,lattitude INTEGER,longitude INTEGER, userEmail TEXT NOT NULL,by TEXT,CreatedAt DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (userEmail) REFERENCES users (email)  ON DELETE CASCADE );")
 	if stmtErr != nil {
 		log.Fatal(stmtErr)
 	}
