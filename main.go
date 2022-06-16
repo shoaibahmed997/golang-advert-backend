@@ -24,8 +24,8 @@ func main() {
 	})
 
 	defer database.DB.Close()
-
-	err := app.Listen(config.Config("PORT"))
+	port := config.Config("PORT")
+	err := app.Listen(":" + port)
 	if err != nil {
 		log.Fatal("error", err)
 	}
