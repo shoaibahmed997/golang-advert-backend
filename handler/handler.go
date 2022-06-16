@@ -433,3 +433,40 @@ func SearchPost(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{"success": true, "data": Allposts})
 }
+
+func GetPostByUser(c *fiber.Ctx) error {
+	email := c.Params("email")
+
+	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE email=?;", email)
+	if rowsError != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": rowsError.Error(), "error type": "Error While Querying database"})
+	}
+
+	var Allposts []models.Post
+	for rows.Next() {
+		var post models.Post
+		err := rows.Scan(&post.ID, &post.Title, &post.Desc, &post.Price, &post.Category, &post.Location, &post.Lattitude, &post.Longitude, &post.UserEmail, &post.By, &post.CreatedAt)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error(), "error type": "Error While Querying database"})
+		}
+		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=?", post.ID)
+		if imgRowsError != nil {
+			return c.Status(503).JSON(fiber.Map{"success": false, "error": imgRowsError.Error()})
+		}
+		for imgRows.Next() {
+			var img models.Image
+			imgerr := imgRows.Scan(&img.Imgpath)
+			if imgerr != nil {
+				return c.Status(503).JSON(fiber.Map{"success": false, "error": imgerr.Error()})
+			}
+			post.Images = append(post.Images, img)
+		}
+
+		imgRows.Close()
+		Allposts = append(Allposts, post)
+	}
+	rows.Close()
+
+	return c.Status(200).JSON(fiber.Map{"success": true, "data": Allposts})
+
+}

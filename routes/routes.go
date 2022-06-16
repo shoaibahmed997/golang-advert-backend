@@ -19,6 +19,7 @@ func PostRoutes(app *fiber.App) {
 	api := app.Group("/api")
 	api.Get("/posts", handler.GetAllPost)
 	api.Get("/search/:searchterm", handler.SearchPost)
+	api.Get("/posts/user/:email", handler.GetPostByUser)
 	api.Get("/posts/category/:category", handler.GetPostByCategory)
 	api.Patch("/post/update/:id", helper.ParseToken, handler.UpdatePost)
 	api.Get("/deletepost/:id", helper.ParseToken, handler.DeletePost)
