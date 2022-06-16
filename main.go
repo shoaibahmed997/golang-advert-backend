@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-ecom/config"
 	"go-ecom/database"
 	"go-ecom/routes"
 	"log"
@@ -24,7 +25,7 @@ func main() {
 
 	defer database.DB.Close()
 
-	err := app.Listen(":5000")
+	err := app.Listen(config.Config("PORT"))
 	if err != nil {
 		log.Fatal("error", err)
 	}
