@@ -437,7 +437,7 @@ func SearchPost(c *fiber.Ctx) error {
 func GetPostByUser(c *fiber.Ctx) error {
 	email := c.Params("email")
 
-	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE email=?;", email)
+	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE userEmail=?;", email)
 	if rowsError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": rowsError.Error(), "error type": "Error While Querying database"})
 	}
