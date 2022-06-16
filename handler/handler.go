@@ -223,33 +223,6 @@ func GetPostByCategory(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"success": true, "data": Allposts})
 }
 
-func UpdatePost(c *fiber.Ctx) error {
-	// post id and email from token
-	postID := c.Params("id")
-	email := c.Locals("email")
-	var post = new(models.Post)
-	parserError := c.BodyParser(post)
-	if parserError != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": parserError.Error()})
-	}
-
-	validationError := helper.Validator.Struct(post)
-	if validationError != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": validationError.Error()})
-	}
-
-	stmt, stmtErr := database.DB.Prepare("UPDATE posts SET Title=?, Desc=?,Price=?,Category=?,Location=?  WHERE ID=? AND userEmail=?")
-	if stmtErr != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": stmtErr.Error()})
-	}
-	res, resError := stmt.Exec(post.Title, post.Desc, post.Price, post.Category, post.Location, postID, email)
-	if resError != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": resError.Error()})
-	}
-
-	return c.Status(200).JSON(fiber.Map{"success": true, "data": res})
-}
-
 func DeletePost(c *fiber.Ctx) error {
 	postID := c.Params("id")
 	email := c.Locals("email")
@@ -437,7 +410,7 @@ func SearchPost(c *fiber.Ctx) error {
 func GetPostByUser(c *fiber.Ctx) error {
 	email := c.Params("email")
 
-	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE userEmail=?;", email)
+	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE userEmail=? ORDER BY CreatedAt DESC;", email)
 	if rowsError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": rowsError.Error(), "error type": "Error While Querying database"})
 	}
