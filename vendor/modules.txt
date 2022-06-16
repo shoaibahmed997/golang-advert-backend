@@ -35,7 +35,6 @@ github.com/google/uuid
 github.com/jinzhu/gorm/dialects/sqlite
 # github.com/joho/godotenv v1.4.0
 ## explicit; go 1.12
-github.com/joho/godotenv
 # github.com/klauspost/compress v1.15.0
 ## explicit; go 1.15
 github.com/klauspost/compress/flate
