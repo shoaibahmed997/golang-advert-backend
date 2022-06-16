@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"go-ecom/config"
 	"go-ecom/database"
@@ -104,7 +105,8 @@ func Signup(c *fiber.Ctx) error {
 }
 
 type newpassword struct {
-	Password string `json:"password" validate:"required,min=7"`
+	Newpassword     string `json:"new_password" validate:"required,min=7"`
+	Currentpassword string `json:"current_password" validate:"required"`
 }
 
 func ChangePassword(c *fiber.Ctx) error {
@@ -122,17 +124,30 @@ func ChangePassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": validationError.Error(), "error type": "validationError"})
 	}
 
+	//  check for previous password
+
+	prevPassRow := database.DB.QueryRow("SELECT password from users WHERE email=?", email)
+	var previousPass string
+	prevError := prevPassRow.Scan(&previousPass)
+	if prevError != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": prevError.Error(), "error type": "dbStatementError"})
+	}
+
+	if previousPass != password.Currentpassword {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": errors.New("password do not match"), "error type": "Password do not Match"})
+	}
+
 	stmt, stmtError := database.DB.Prepare("UPDATE users SET password=? WHERE email=?;")
 	if stmtError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": stmtError.Error(), "error type": "dbStatementError"})
 	}
 
-	_, resError := stmt.Exec(password.Password, email)
+	_, resError := stmt.Exec(password.Newpassword, email)
 	if resError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": resError.Error(), "error type": "dbExecutionError"})
 	}
 
-	return c.JSON(fiber.Map{"success": true, "Data": "Password Changed Successfully"})
+	return c.JSON(fiber.Map{"success": true, "data": "Password Changed Successfully"})
 
 }
 
