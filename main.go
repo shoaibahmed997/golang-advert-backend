@@ -16,7 +16,11 @@ func main() {
 	app.Use(cors.New())
 	routes.UserRoutes(app)
 	routes.PostRoutes(app)
+	app.Static("/", "./frontend")
 	app.Static("/", "./public")
+	app.Get("*", func(c *fiber.Ctx) error {
+		return c.SendFile("./frontend/index.html")
+	})
 
 	defer database.DB.Close()
 

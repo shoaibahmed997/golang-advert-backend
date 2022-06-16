@@ -163,7 +163,7 @@ func DeleteUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": resError.Error(), "error type": "dbExecutionError"})
 	}
 
-	return c.JSON(fiber.Map{"success": true, "Data": "User Deleted Successfully"})
+	return c.JSON(fiber.Map{"success": true, "data": "User Deleted Successfully"})
 }
 
 // -------------------------POST API FUNCTIONS------------------------------------------------------->

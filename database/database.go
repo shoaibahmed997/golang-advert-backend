@@ -21,7 +21,7 @@ func postTable() {
 }
 
 func imagesTable() {
-	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS images (ID TEXT PRIMARY KEY, imgpath TEXT, PostID INTEGER, FOREIGN KEY (PostID) REFERENCES posts (ID)  ON DELETE CASCADE );")
+	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS images (ID TEXT PRIMARY KEY, imgpath TEXT, PostID INTEGER, FOREIGN KEY (PostID) REFERENCES posts (ID) ON DELETE CASCADE );")
 	if stmtErr != nil {
 		log.Fatal(stmtErr)
 	}
