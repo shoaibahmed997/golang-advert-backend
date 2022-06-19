@@ -2,20 +2,12 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
+	"go-ecom/config"
 	"log"
 )
 
 var err error
 var DB *sql.DB
-
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = 1234
-	dbname   = "advert_db"
-)
 
 func postTable() {
 	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS posts (ID TEXT PRIMARY KEY,Title TEXT NOT NULL,Description TEXT NOT NULL,Price INT NOT NULL,Category TEXT NOT NULL,Location TEXT NOT NULL,lattitude NUMERIC,longitude NUMERIC, userEmail TEXT NOT NULL, by TEXT , CreatedAt TIMESTAMP DEFAULT NOW(), FOREIGN KEY (userEmail) REFERENCES users (email)  ON DELETE CASCADE );")
@@ -41,8 +33,8 @@ func imagesTable() {
 }
 
 func DBInit() {
-	psqlConURI := fmt.Sprintf("host=%s port=%d user=%s password=%d dbname=%s sslmode=disable", host, port, user, password, dbname)
-	DB, err = sql.Open("postgres", psqlConURI)
+	// psqlConURI := fmt.Sprintf("host=%s port=%d user=%s password=%d dbname=%s sslmode=disable", host, port, user, password, dbname)
+	DB, err = sql.Open("postgres", config.Config("DATABASE_URL"))
 	if err != nil {
 		log.Println(err)
 	}
