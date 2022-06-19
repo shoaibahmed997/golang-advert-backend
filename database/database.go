@@ -2,14 +2,23 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 )
 
 var err error
 var DB *sql.DB
 
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = 1234
+	dbname   = "advert_db"
+)
+
 func postTable() {
-	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS posts (ID TEXT PRIMARY KEY,Title TEXT NOT NULL,Desc TEXT NOT NULL,Price INTEGER NOT NULL,Category TEXT NOT NULL,Location TEXT NOT NULL,lattitude INTEGER,longitude INTEGER, userEmail TEXT NOT NULL,by TEXT,CreatedAt DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (userEmail) REFERENCES users (email)  ON DELETE CASCADE );")
+	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS posts (ID TEXT PRIMARY KEY,Title TEXT NOT NULL,Description TEXT NOT NULL,Price INT NOT NULL,Category TEXT NOT NULL,Location TEXT NOT NULL,lattitude NUMERIC,longitude NUMERIC, userEmail TEXT NOT NULL, by TEXT , CreatedAt TIMESTAMP DEFAULT NOW(), FOREIGN KEY (userEmail) REFERENCES users (email)  ON DELETE CASCADE );")
 	if stmtErr != nil {
 		log.Fatal(stmtErr)
 	}
@@ -21,7 +30,7 @@ func postTable() {
 }
 
 func imagesTable() {
-	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS images (ID TEXT PRIMARY KEY, imgpath TEXT, PostID INTEGER, FOREIGN KEY (PostID) REFERENCES posts (ID) ON DELETE CASCADE );")
+	stmt, stmtErr := DB.Prepare("CREATE TABLE IF NOT EXISTS images (ID TEXT PRIMARY KEY, imgpath TEXT NOT NULL, PostID TEXT NOT NULL, FOREIGN KEY (PostID) REFERENCES posts (ID) ON DELETE CASCADE );")
 	if stmtErr != nil {
 		log.Fatal(stmtErr)
 	}
@@ -32,17 +41,18 @@ func imagesTable() {
 }
 
 func DBInit() {
-	DB, err = sql.Open("sqlite3", "./data.db")
+	psqlConURI := fmt.Sprintf("host=%s port=%d user=%s password=%d dbname=%s sslmode=disable", host, port, user, password, dbname)
+	DB, err = sql.Open("postgres", psqlConURI)
 	if err != nil {
 		log.Println(err)
 	}
 
-	_, err1 := DB.Exec("PRAGMA foreign_keys = ON", nil)
-	if err1 != nil {
-		log.Println(err1)
-	}
+	// _, err1 := DB.Exec("PRAGMA foreign_keys = ON", nil)
+	// if err1 != nil {
+	// 	log.Println(err1)
+	// }
 
-	stmt, stmtError := DB.Prepare("CREATE TABLE IF NOT EXISTS users (ID TEXT PRIMARY KEY, Firstname TEXT NOT NULL,Lastname TEXT, Email TEXT NOT NULL UNIQUE, Password TEXT NOT NULL, CreatedAt DEFAULT CURRENT_TIMESTAMP);")
+	stmt, stmtError := DB.Prepare("CREATE TABLE IF NOT EXISTS users (ID TEXT PRIMARY KEY, Firstname TEXT NOT NULL,Lastname TEXT, Email TEXT NOT NULL UNIQUE, Password TEXT NOT NULL, CreatedAt TIMESTAMP DEFAULT NOW());")
 	if stmtError != nil {
 		log.Println("error stmt", stmtError)
 	}

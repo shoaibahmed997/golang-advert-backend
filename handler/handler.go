@@ -37,7 +37,7 @@ func Login(c *fiber.Ctx) error {
 
 	// find in database
 
-	rows, resError := database.DB.Query("SELECT ID,firstname,password FROM users WHERE email=?;", user.Email)
+	rows, resError := database.DB.Query("SELECT ID,firstname,password FROM users WHERE email=$1;", user.Email)
 	if resError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": resError.Error()})
 	}
@@ -86,7 +86,7 @@ func Signup(c *fiber.Ctx) error {
 	}
 	id := uuid.Must(uuid.NewRandom())
 
-	stmt, _ := database.DB.Prepare("INSERT INTO users (ID,firstname,lastname,email,password) VALUES (?,?,?,?,?);")
+	stmt, _ := database.DB.Prepare("INSERT INTO users (ID,firstname,lastname,email,password) VALUES ($1,$2,$3,$4,$5);")
 	_, resError := stmt.Exec(id, user.FirstName, user.LastName, user.Email, user.Password)
 	if resError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": resError.Error()})
@@ -126,7 +126,7 @@ func ChangePassword(c *fiber.Ctx) error {
 
 	//  check for previous password
 
-	prevPassRow := database.DB.QueryRow("SELECT password from users WHERE email=?", email)
+	prevPassRow := database.DB.QueryRow("SELECT password from users WHERE email=$1", email)
 	var previousPass string
 	prevError := prevPassRow.Scan(&previousPass)
 	if prevError != nil {
@@ -137,7 +137,7 @@ func ChangePassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": errors.New("password do not match"), "error type": "Password do not Match"})
 	}
 
-	stmt, stmtError := database.DB.Prepare("UPDATE users SET password=? WHERE email=?;")
+	stmt, stmtError := database.DB.Prepare("UPDATE users SET password=$1 WHERE email=$2;")
 	if stmtError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": stmtError.Error(), "error type": "dbStatementError"})
 	}
@@ -154,7 +154,7 @@ func ChangePassword(c *fiber.Ctx) error {
 func DeleteUser(c *fiber.Ctx) error {
 
 	email := c.Locals("email")
-	stmt, stmtError := database.DB.Prepare("DELETE FROM users WHERE email=?;")
+	stmt, stmtError := database.DB.Prepare("DELETE FROM users WHERE email=$1;")
 	if stmtError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": stmtError.Error(), "error type": "dbStatementError"})
 	}
@@ -183,7 +183,7 @@ func GetAllPost(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error()})
 		}
 		// get images from images table  and add to post then add the post to all post
-		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=?", post.ID)
+		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=$1", post.ID)
 		if imgRowsError != nil {
 			return c.Status(503).JSON(fiber.Map{"success": false, "error": imgRowsError.Error()})
 		}
@@ -205,7 +205,7 @@ func GetAllPost(c *fiber.Ctx) error {
 func GetPostByCategory(c *fiber.Ctx) error {
 	// get everything from database and give it to user
 	category := c.Params("category")
-	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE Category=? ORDER BY CreatedAt DESC;", category)
+	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE Category=$1 ORDER BY CreatedAt DESC;", category)
 	if rowsError != nil {
 		return c.Status(503).JSON(fiber.Map{"success": false, "error": rowsError.Error()})
 	}
@@ -218,7 +218,7 @@ func GetPostByCategory(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error()})
 		}
 		// get images from images table  and add to post then add the post to all post
-		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=?", post.ID)
+		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=$1", post.ID)
 		if imgRowsError != nil {
 			return c.Status(503).JSON(fiber.Map{"success": false, "error": imgRowsError.Error()})
 		}
@@ -242,7 +242,7 @@ func DeletePost(c *fiber.Ctx) error {
 	postID := c.Params("id")
 	email := c.Locals("email")
 
-	stmt, stmtErr := database.DB.Prepare("DELETE FROM posts WHERE ID=? AND userEmail=? ;")
+	stmt, stmtErr := database.DB.Prepare("DELETE FROM posts WHERE ID=$1 AND userEmail=$2 ;")
 
 	if stmtErr != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": stmtErr.Error()})
@@ -273,7 +273,7 @@ func GetFirst20post(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error()})
 		}
 		// get images from images table  and add to post then add the post to all post
-		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=?", post.ID)
+		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=$1", post.ID)
 		if imgRowsError != nil {
 			return c.Status(503).JSON(fiber.Map{"success": false, "error": imgRowsError.Error()})
 		}
@@ -328,7 +328,7 @@ func CreatePost(c *fiber.Ctx) error {
 
 	// get the firstname and last name of the user by email
 	var username userName
-	NameRow := database.DB.QueryRow("SELECT firstname,lastname FROM users WHERE email=?", post.UserEmail)
+	NameRow := database.DB.QueryRow("SELECT firstname,lastname FROM users WHERE email=$1", post.UserEmail)
 	NameRowError := NameRow.Scan(&username.Firstname, &username.Lastname)
 	if NameRowError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": NameRowError.Error(), "error type": "No Data found error, Cannot find your name in database"})
@@ -351,7 +351,7 @@ func CreatePost(c *fiber.Ctx) error {
 		c.SaveFile(file, fmt.Sprint("./public/", id, file.Filename))
 	}
 
-	stmt, stmtError := database.DB.Prepare("INSERT INTO posts (ID,title,desc,price,category,location,userEmail,lattitude,longitude,By) VALUES (?,?,?,?,?,?,?,?,?,?);")
+	stmt, stmtError := database.DB.Prepare("INSERT INTO posts (ID,title,description,price,category,location,userEmail,lattitude,longitude,By) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10);")
 	if stmtError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": stmtError.Error()})
 	}
@@ -361,7 +361,7 @@ func CreatePost(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": resError.Error()})
 	}
 
-	stmt2, stmt2Error := database.DB.Prepare("INSERT INTO images (ID,imgpath,PostID) VALUES (?,?,?);")
+	stmt2, stmt2Error := database.DB.Prepare("INSERT INTO images (ID,imgpath,PostID) VALUES ($1,$2,$3);")
 	if stmt2Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": stmt2Error.Error()})
 	}
@@ -390,7 +390,7 @@ func CreatePost(c *fiber.Ctx) error {
 func SearchPost(c *fiber.Ctx) error {
 
 	searchterm := c.Params("searchterm")
-	rows, rowsError := database.DB.Query(fmt.Sprint("SELECT * FROM posts WHERE title LIKE '%", searchterm, "%' OR desc LIKE '%", searchterm, "%' ;"))
+	rows, rowsError := database.DB.Query(fmt.Sprint("SELECT * FROM posts WHERE title LIKE '%", searchterm, "%' OR description LIKE '%", searchterm, "%' ;"))
 	if rowsError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": rowsError.Error(), "error type": "Error While Querying database"})
 	}
@@ -401,7 +401,7 @@ func SearchPost(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error(), "error type": "Error While Querying database"})
 		}
-		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=?", post.ID)
+		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=$1", post.ID)
 		if imgRowsError != nil {
 			return c.Status(503).JSON(fiber.Map{"success": false, "error": imgRowsError.Error()})
 		}
@@ -425,7 +425,7 @@ func SearchPost(c *fiber.Ctx) error {
 func GetPostByUser(c *fiber.Ctx) error {
 	email := c.Params("email")
 
-	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE userEmail=? ORDER BY CreatedAt DESC;", email)
+	rows, rowsError := database.DB.Query("SELECT * FROM posts WHERE userEmail=$1 ORDER BY CreatedAt DESC;", email)
 	if rowsError != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": rowsError.Error(), "error type": "Error While Querying database"})
 	}
@@ -437,7 +437,7 @@ func GetPostByUser(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error(), "error type": "Error While Querying database"})
 		}
-		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=?", post.ID)
+		imgRows, imgRowsError := database.DB.Query("SELECT imgpath FROM images WHERE PostId=$1", post.ID)
 		if imgRowsError != nil {
 			return c.Status(503).JSON(fiber.Map{"success": false, "error": imgRowsError.Error()})
 		}
